@@ -1,0 +1,61 @@
+{
+  "port": 3000,
+  "muteStartup": false,
+  "quietHours": {
+    "enabled": false,
+    "start": "22:00",
+    "end": "08:00"
+  },
+  "maxResponses": 5,
+  "conversation": {
+    "audio": {
+      "encodingIn": "LINEAR16",
+      "sampleRateIn": 16000,
+      "encodingOut": "LINEAR16",
+      "sampleRateOut": 24000
+    },
+    "lang": "en-US",
+    "screen": {
+      "isOn": false
+    }
+  },
+  "users": [
+    {
+      "name": "obp3ter",
+      "secret": {
+        "installed": {
+          "client_id": "191275618673-fi2orgoad9ir0tvp3vfhp697b38m1m5j.apps.googleusercontent.com",
+          "project_id": "assistant-relay-bb686",
+          "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+          "token_uri": "https://oauth2.googleapis.com/token",
+          "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+          "client_secret": "BHRxgcjTc0oSUaPpwGcYcb0D",
+          "redirect_uris": [
+            "urn:ietf:wg:oauth:2.0:oob",
+            "http://localhost"
+          ]
+        }
+      },
+      "tokens": {
+        "access_token": "ya29.a0Ae4lvC0xDcUjzcM2ulsezTZVJQc-GQ6znbt09v6jsyyHHwoFwixi47rA6vUb2sQypSRoDqT7bZJi2uPCBIpQpDJ11L1Wgo7NG_V8vbzcgAVSSMX7NNTIN3clnWgPapcQ2_RTrK51mJTV2faI1-wvCoCURwlMBiS86X0",
+        "refresh_token": "1//098c8b64Kv2bzCgYIARAAGAkSNwF-L9IrCAMWs3UwEg8c2uRpw1d3eawQh2OTEUzskQq1s3H9g4eiuJkF8wdX6ByPRDmA1_IzVAg",
+        "scope": "https://www.googleapis.com/auth/assistant-sdk-prototype",
+        "token_type": "Bearer",
+        "expiry_date": 1588074319584
+      }
+    }
+  ],
+  "responses": [
+    {
+      "command": "what's up",
+      "response": "Just searching for answers to life's big (and small) questions. What can I help you with?",
+      "timestamp": 1588071836434
+    },
+    {
+      "command": "what's up",
+      "response": "Just searching for answers to life's big (and small) questions. What can I help you with?",
+      "timestamp": 1588085067427
+    }
+  ],
+  "devices": []
+}
