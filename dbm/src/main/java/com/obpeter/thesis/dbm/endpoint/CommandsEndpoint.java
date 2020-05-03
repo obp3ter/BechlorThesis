@@ -1,5 +1,6 @@
 package com.obpeter.thesis.dbm.endpoint;
 
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -8,6 +9,7 @@ import com.obpeter.thesis.dbm.service.CommandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,9 +38,19 @@ public class CommandsEndpoint {
     ResponseEntity<Command>add(Command command){
         return ResponseEntity.ok(service.add(command));
     }
+
     @PostMapping("/issue")
     ResponseEntity<Command>issue(@RequestParam String freeText){
         return ResponseEntity.ok(service.add(Command.builder().defaults().freeText(freeText).build()));
+    }
+
+    @PostMapping("/dow")
+    ResponseEntity<List<Command>> searchByDOW(@RequestParam String dayOfWeek){
+        return ResponseEntity.ok(service.searchForDOW(DayOfWeek.valueOf(dayOfWeek.toUpperCase())).collect(Collectors.toList()));
+    }
+    @PostMapping("/hm")
+    ResponseEntity<List<Command>> searchByHourAndMinute(@RequestParam Short hour, @RequestParam @Nullable Short minute){
+        return ResponseEntity.ok(service.searchHourMinute(hour,minute).collect(Collectors.toList()));
     }
 
 }

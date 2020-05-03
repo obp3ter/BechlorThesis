@@ -21,11 +21,9 @@ public class HttpClient {
     @Autowired
     DiscoveryClient eurekaClient;
 
-    private String app = "database-manager";
-
     private Client client = ClientBuilder.newClient();
 
-    public Response get(String ... path) {
+    public Response get(String app,String ... path) {
         StringBuilder suffix = new StringBuilder();
         Arrays.asList(path).forEach(word->suffix.append('/').append(word));
         ServiceInstance instanceInfo = eurekaClient.getInstances(app).get(0);
@@ -33,7 +31,7 @@ public class HttpClient {
                 .path(suffix.toString())
                 .request(MediaType.APPLICATION_JSON).get();
     }
-    public Response post(Map<String, String> body, String... path) {
+    public Response post(String app,Map<String, String> body, String... path) {
         StringBuilder suffix = new StringBuilder();
         Form form = new Form();
         body.forEach(form::param);

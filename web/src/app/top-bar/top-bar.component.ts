@@ -19,7 +19,7 @@ export class TopBarComponent implements OnInit {
             let body = new FormData();
             body.append('freeText',title);
             console.log(body);
-            this.http.post("http://localhost:8080/dbm/command/issue", body).subscribe(resp => {
+            this.http.post("http://localhost:8080/api/command/issue", body).subscribe(resp => {
                 alert("Sent!")
             });
         } else {

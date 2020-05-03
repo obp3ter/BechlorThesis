@@ -29,28 +29,28 @@ public class CommandsEndpoint {
 
     @GetMapping
     List<Command> getAll() {
-        return client.get("command").readEntity(List.class);
+        return client.get("database-manager","command").readEntity(List.class);
     }
 
     @GetMapping("/{id}")
     Command get(@PathVariable UUID id) {
-        return client.get("command",id.toString()).readEntity(Command.class);
+        return client.get("database-manager","command",id.toString()).readEntity(Command.class);
     }
 
     @PostMapping
     Command add(Command command) {
 
-        return client.post(Map.of(),"command").readEntity(Command.class);
+        return client.post("database-manager",Map.of(),"command").readEntity(Command.class);
     }
 
     @PostMapping("/issue")
     Command issue(@RequestParam String freeText) {
-//        HashMap<String, Object> assistantReq=new HashMap<>();
-//        assistantReq.put("name","obp3ter");
-//        assistantReq.put("command",freeText);
-//        assistantReq.put("converse",true);
-//        client.post(assistantReq)
-        return client.post(Map.of("freeText",freeText),"command","issue").readEntity(Command.class);
+        HashMap<String, String> assistantReq=new HashMap<>();
+        assistantReq.put("name","obp3ter");
+        assistantReq.put("command",freeText);
+        assistantReq.put("converse","true");
+        client.post("assistant-relay",assistantReq,"assistant");
+        return client.post("database-manager",Map.of("freeText",freeText),"command","issue").readEntity(Command.class);
     }
 
 }

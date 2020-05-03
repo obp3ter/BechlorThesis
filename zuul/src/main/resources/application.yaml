@@ -22,3 +22,7 @@ zuul:
       path: /dbm/**
       serviceId: database-manager
       stripPrefix: true
+    gateway:
+      path: /api/**
+      serviceId: gateway
+      stripPrefix: true
