@@ -47,29 +47,29 @@
   ],
   "responses": [
     {
-      "command": "weather",
-      "response": "It looks like a pleasant day\nIt's currently 7 °C and partly cloudy there. Today, there'll be scattered thunderstorms, with a forecasted high of 20 and a low of 6.\n---\n( More on weather.com )",
-      "timestamp": 1588136969278
-    },
-    {
-      "command": "weather",
-      "response": "Looks kind of cloudy\nRight now, it's 9 °C and mostly cloudy there. Today, there'll be scattered thunderstorms, with a forecasted high of 20 and a low of 6.\n---\n( More on weather.com )",
-      "timestamp": 1588140875831
-    },
-    {
-      "command": "weather",
-      "response": "Looks kind of cloudy\nIt's currently 9 °C and mostly cloudy there. Today, there'll be scattered thunderstorms, with a forecasted high of 20 and a low of 6.\n---\n( More on weather.com )",
-      "timestamp": 1588140896176
-    },
-    {
-      "command": "hello there",
+      "command": "hello",
       "response": "Hey Péter",
-      "timestamp": 1588141045102
+      "timestamp": 1588703544545
     },
     {
-      "command": "What's up",
-      "response": "Just searching for answers to life's big (and small) questions. What can I help you with?",
-      "timestamp": 1588143213379
+      "command": "hello",
+      "response": "Hi! How can I help?",
+      "timestamp": 1588703554816
+    },
+    {
+      "command": "hello",
+      "response": "It’s really good to hear from you Péter. I hope you’re doing well.",
+      "timestamp": 1588703690047
+    },
+    {
+      "command": "hello",
+      "response": "It’s really good to hear from you Péter. I hope you and your loved ones are safe and healthy.",
+      "timestamp": 1588703805075
+    },
+    {
+      "command": "hello",
+      "response": "Hey Péter",
+      "timestamp": 1588704043164
     }
   ],
   "devices": []

@@ -4,10 +4,11 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import com.obpeter.thesis.dbm.entity.Command;
 import com.obpeter.thesis.dbm.service.CommandService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,31 +27,38 @@ public class CommandsEndpoint {
 
     @GetMapping
     ResponseEntity<List<Command>> getAll() {
-    return ResponseEntity.ok(service.findAll().collect(Collectors.toList()));
+        return ResponseEntity.ok(service.findAll().collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Command> get(@PathVariable UUID id){
+    ResponseEntity<Command> get(@PathVariable UUID id) {
         return ResponseEntity.ok(service.find(id).orElseThrow());
     }
 
     @PostMapping
-    ResponseEntity<Command>add(Command command){
+    ResponseEntity<Command> add(Command command) {
         return ResponseEntity.ok(service.add(command));
     }
 
     @PostMapping("/issue")
-    ResponseEntity<Command>issue(@RequestParam String freeText){
+    ResponseEntity<Command> issue(@RequestParam String freeText) {
         return ResponseEntity.ok(service.add(Command.builder().defaults().freeText(freeText).build()));
     }
 
     @PostMapping("/dow")
-    ResponseEntity<List<Command>> searchByDOW(@RequestParam String dayOfWeek){
-        return ResponseEntity.ok(service.searchForDOW(DayOfWeek.valueOf(dayOfWeek.toUpperCase())).collect(Collectors.toList()));
+    ResponseEntity<List<Command>> searchByDOW(@RequestParam String dayOfWeek) {
+        return ResponseEntity
+                .ok(service.searchForDOW(DayOfWeek.valueOf(dayOfWeek.toUpperCase())).collect(Collectors.toList()));
     }
+
     @PostMapping("/hm")
-    ResponseEntity<List<Command>> searchByHourAndMinute(@RequestParam Short hour, @RequestParam @Nullable Short minute){
-        return ResponseEntity.ok(service.searchHourMinute(hour,minute).collect(Collectors.toList()));
+    ResponseEntity<List<Command>> searchByHourAndMinute(@RequestParam Short hour, @RequestParam @Nullable Short minute) {
+        return ResponseEntity.ok(service.searchHourMinute(hour, minute).collect(Collectors.toList()));
+    }
+
+    @PostMapping("/avgExecTOD")
+    ResponseEntity<Pair<Short, Short>> avgExecTOD(@RequestParam String freeText) {
+        return ResponseEntity.ok(service.avgTimeOfQuery(freeText));
     }
 
 }
