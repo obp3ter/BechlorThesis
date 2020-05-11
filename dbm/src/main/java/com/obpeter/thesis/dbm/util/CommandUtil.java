@@ -1,11 +1,10 @@
-package com.obpeter.thesis.dbm.service;
+package com.obpeter.thesis.dbm.util;
 
 import java.time.DayOfWeek;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
 

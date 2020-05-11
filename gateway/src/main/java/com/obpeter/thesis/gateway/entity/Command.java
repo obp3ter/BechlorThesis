@@ -1,5 +1,7 @@
 package com.obpeter.thesis.gateway.entity;
 
+import java.io.Serializable;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,20 +21,22 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class Command {
+public class Command implements Serializable {
     private UUID id;
-
     private String freeText;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime time;
+    private DayOfWeek dayOfWeek;
+    private Long timeOfDay;
 
-    public static class CommandBuilder {
-        public CommandBuilder defaults() {
-            this.time = LocalDateTime.now();
-            this.id = UUID.randomUUID();
+    public static class CommandBuilder{
+        public CommandBuilder defaults(){
+            this.time=LocalDateTime.now();
+            this.id=UUID.randomUUID();
+            this.dayOfWeek=time.getDayOfWeek();
+            this.timeOfDay=(long)(time.getHour()*60+time.getMinute())*60+time.getSecond();
             return this;
         }
     }

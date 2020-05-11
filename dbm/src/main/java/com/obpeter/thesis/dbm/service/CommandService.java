@@ -3,14 +3,15 @@ package com.obpeter.thesis.dbm.service;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.validation.constraints.NotNull;
 
+import com.obpeter.thesis.dbm.util.MappedIterator;
 import com.obpeter.thesis.dbm.entity.Command;
+import com.obpeter.thesis.dbm.util.CommandUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -44,17 +45,18 @@ public class CommandService extends BaseService<Command, UUID> {
     }
 
     public Pair<Short, Short> avgTimeOfQuery(String freeText) {
-        Iterator<Command> commandIterator;
+        Iterable<Command> commandIterable;
         if (freeText != null) {
-            commandIterator = repository
-                    .search(QueryBuilders.boolQuery().must(QueryBuilders.matchPhraseQuery("freeText", freeText))).iterator();
+            commandIterable = repository
+                    .search(QueryBuilders.boolQuery().must(QueryBuilders.matchPhraseQuery("freeText", freeText)));
         } else {
-            commandIterator = repository.findAll().iterator();
+            commandIterable = repository.findAll();
         }
         long time = 0;
         long counter = 0;
+        MappedIterator<Command,LocalDateTime> commandIterator=new MappedIterator<>(commandIterable,Command::getTime);
         while (commandIterator.hasNext()) {
-            LocalDateTime commandTime = commandIterator.next().getTime();
+            LocalDateTime commandTime = commandIterator.next();
             LocalDateTime midnight = LocalDateTime.from(commandTime).truncatedTo(ChronoUnit.DAYS);
             time += ChronoUnit.SECONDS.between(midnight, commandTime);
             counter++;

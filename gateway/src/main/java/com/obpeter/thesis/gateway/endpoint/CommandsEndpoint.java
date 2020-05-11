@@ -59,4 +59,18 @@ public class CommandsEndpoint {
         }
     }
 
+    @PostMapping("/avgExecTOD")
+    ResponseEntity executionTimeAverage(@RequestParam String freeText){
+        ResponseEntity postResponse = client.post("database-manager", Map.of("freeText", freeText), "command", "avgExecTOD");
+        if(postResponse.getStatusCode()!= HttpStatus.OK)
+            return postResponse;
+        JsonObject postBody = gson.fromJson(
+                postResponse.getBody().toString(),
+                JsonObject.class);
+        JsonObject response = new JsonObject();
+        response.addProperty("hours",postBody.get("first").getAsInt());
+        response.addProperty("minutes",postBody.get("second").getAsInt());
+        return ResponseEntity.ok(response.toString());
+    }
+
 }
