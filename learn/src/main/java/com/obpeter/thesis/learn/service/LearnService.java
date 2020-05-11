@@ -5,13 +5,13 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.google.gson.Gson;
 import com.obpeter.thesis.learn.client.ESAccess;
 import com.obpeter.thesis.learn.entity.Command;
@@ -57,7 +57,7 @@ public class LearnService {
         for (Field field : fields) {
             String fieldName = field.getName();
             RandomForestMapping.Strategy strategy = field.getAnnotation(RandomForestMapping.class).strategy();
-            if (fieldName.equals("freeText") || strategy == RandomForestMapping.Strategy.IGNORE) {
+            if (Arrays.asList("freeText","time").contains(fieldName) || strategy == RandomForestMapping.Strategy.IGNORE) {
                 continue;
             }
             String name = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
@@ -77,14 +77,21 @@ public class LearnService {
         access.getField("shm", query, "dayOfWeek");
     }
 
-    public Quartet<String, Class<?>, Method, RandomForestMapping.Strategy> sometin() {
+    public Pair<BoolQueryBuilder,Long> sometin() {
         ArrayList<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>> properties = getProperties();
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        Quartet<String, Class<?>, Method, RandomForestMapping.Strategy> bestProperty = properties.stream()
-                .map(property -> Pair.with(property,
-                        propertyScore(property.getValue0(), queryBuilder, property.getValue3(), property.getValue1()))).max(
-                        Comparator.comparing(pair -> pair.getValue1().getValue1())).get().getValue0();
-        return bestProperty;
+        while(properties.size()>0)
+        {
+            Pair<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>, Pair<QueryBuilder, Long>> bestProperty = properties
+                    .stream()
+                    .map(property -> Pair.with(property,
+                            propertyScore(property.getValue0(), queryBuilder, property.getValue3(), property.getValue1())))
+                    .max(
+                            Comparator.comparing(pair -> pair.getValue1().getValue1())).get();
+            queryBuilder.must(bestProperty.getValue1().getValue0());
+            properties.removeIf(property->property.getValue0().equals(bestProperty.getValue0().getValue0()));
+        }
+        return Pair.with(queryBuilder,access.count("shm",queryBuilder));
     }
 
     public <T> Pair<QueryBuilder, Long> propertyScore(String name, BoolQueryBuilder baseQuery,
