@@ -60,7 +60,7 @@ public class ESAccess {
         return StreamSupport.stream(search.getHits().spliterator(),false)
                 .map(SearchHit::getSourceAsString)
                 .map(this::formatJson)
-                .findFirst().get();
+                .findFirst().orElse(null);
     }
 
     String formatJson(String json){

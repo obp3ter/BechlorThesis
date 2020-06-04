@@ -1,5 +1,6 @@
 package com.obpeter.thesis.learn.entity;
 
+
 public class HabitContainsProperty extends HabitProperty {
 
     public HabitContainsProperty(String propertyName, String value1) {

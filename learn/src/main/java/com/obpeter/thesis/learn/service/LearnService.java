@@ -41,7 +41,11 @@ public class LearnService {
 
     public static final double PERCENTILE = 10;
 
-    public static final long THRESHOLD_TO_LEARN = 10;
+    public static final long COMMAND_THRESHOLD_TO_LEARN = 10;
+
+    public static final long PROPERTY_THRESHOLD_TO_LEARN = 2;
+
+    public static final double ACCEPTABLE_LOSS_RATIO = 0.1;
 
     @Autowired
     ESAccess access;
@@ -94,14 +98,23 @@ public class LearnService {
         ArrayList<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>> properties = getProperties();
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchPhraseQuery("freeText", freeText));
         ArrayList<HabitProperty> habitProperties = new ArrayList<>();
+        long preCount = access.count("shm", queryBuilder);
         while (properties.size() > 0) {
             Pair<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>, Pair<QueryBuilder, Long>> bestProperty = properties
                     .stream()
                     .map(property -> Pair.with(property,
                             propertyScore(property.getValue0(), queryBuilder, property.getValue3(), property.getValue1())))
-                    .max(
-                            Comparator.comparing(pair -> pair.getValue1().getValue1())).get();
-            queryBuilder.must(bestProperty.getValue1().getValue0());
+                    .max(Comparator.comparing(pair -> pair.getValue1().getValue1())).get();
+            if (bestProperty.getValue1().getValue0() != null) {
+                queryBuilder.must(bestProperty.getValue1().getValue0());
+            } else {
+                return Pair.with(null, 0L);
+            }
+            long newCount = access.count("shm", queryBuilder);
+            if (newCount < PROPERTY_THRESHOLD_TO_LEARN || newCount < preCount * ACCEPTABLE_LOSS_RATIO) {
+                break;
+            }
+            preCount = newCount;
             switch (bestProperty.getValue0().getValue3()) {
             case RANGE:
                 habitProperties.add(new HabitRangeProperty(bestProperty.getValue0().getValue0(),
@@ -121,6 +134,10 @@ public class LearnService {
 
     public <T> Pair<QueryBuilder, Long> propertyScore(String name, BoolQueryBuilder baseQuery,
             RandomForestMapping.Strategy strategy, Class<T> clazz) {
+        long count = access.count("shm", baseQuery);
+        if (count < COMMAND_THRESHOLD_TO_LEARN) {
+            return Pair.with(null, 0L);
+        }
         switch (strategy) {
         case EQUALS:
             BoolQueryBuilder currentQuery = QueryBuilders.boolQuery().must(baseQuery);
@@ -143,7 +160,6 @@ public class LearnService {
                 return Pair.with(null, 0L);
             }
         case RANGE:
-            long count = access.count("shm", baseQuery);
             RangeQueryBuilder rangeQueryBuilder;
             if (!clazz.equals(LocalDateTime.class)) {
                 rangeQueryBuilder = QueryBuilders.rangeQuery(name)
@@ -171,16 +187,18 @@ public class LearnService {
         }
     }
 
-    private Stream<Command> getRecentCommands() {
+    private Stream<String> getRecentCommands() {
         return StreamSupport.stream(commandRepository.search(QueryBuilders.boolQuery()
-                .must(QueryBuilders.rangeQuery("time").gte(LocalDateTime.now().minusDays(1)))).spliterator(),true);
+                .must(QueryBuilders.rangeQuery("time").gte(LocalDateTime.now().minusDays(1)))).spliterator(), true)
+                .map(Command::getFreeText).distinct();
     }
 
     @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
     public void learnNewCommands() {
-        List<Habit> newHabits = getRecentCommands().map(command -> getHabitByFreeText(command.getFreeText()))
-                .filter(pair -> pair.getValue1() >= THRESHOLD_TO_LEARN)
-                .peek(pair->habitRepository.index(pair.getValue0()))
+        List<Habit> newHabits = getRecentCommands().map(this::getHabitByFreeText)
+                .filter(pair -> pair.getValue1() >= COMMAND_THRESHOLD_TO_LEARN
+                        && pair.getValue0().getProperties().size() >= PROPERTY_THRESHOLD_TO_LEARN)
+                .peek(pair -> habitRepository.index(pair.getValue0()))
                 .map(Pair::getValue0).collect(Collectors.toList());
     }
 
