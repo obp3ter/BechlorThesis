@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -36,7 +37,7 @@ public class Command implements Serializable {
     @RandomForestMapping(strategy = RandomForestMapping.Strategy.CONTAINS)
     private String freeText;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date,format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)

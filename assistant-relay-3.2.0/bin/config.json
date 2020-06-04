@@ -47,29 +47,29 @@
   ],
   "responses": [
     {
-      "command": "hello",
-      "response": "Hey Péter",
-      "timestamp": 1588703544545
+      "command": "What's the time",
+      "response": " ",
+      "timestamp": 1589347080182
     },
     {
-      "command": "hello",
+      "command": "What's the time",
+      "response": " ",
+      "timestamp": 1589347084341
+    },
+    {
+      "command": "What's the time",
+      "response": " ",
+      "timestamp": 1589347094710
+    },
+    {
+      "command": "Hello",
       "response": "Hi! How can I help?",
-      "timestamp": 1588703554816
+      "timestamp": 1589350293578
     },
     {
-      "command": "hello",
-      "response": "It’s really good to hear from you Péter. I hope you’re doing well.",
-      "timestamp": 1588703690047
-    },
-    {
-      "command": "hello",
-      "response": "It’s really good to hear from you Péter. I hope you and your loved ones are safe and healthy.",
-      "timestamp": 1588703805075
-    },
-    {
-      "command": "hello",
-      "response": "Hey Péter",
-      "timestamp": 1588704043164
+      "command": "hello there",
+      "response": "Hope you're having a terrific Thursday Péter. How can I help?",
+      "timestamp": 1591276372643
     }
   ],
   "devices": []

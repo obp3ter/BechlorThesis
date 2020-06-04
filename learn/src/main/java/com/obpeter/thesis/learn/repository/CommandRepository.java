@@ -7,5 +7,5 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CommandRepo extends ElasticsearchRepository<Command, UUID> {
+public interface CommandRepository extends ElasticsearchRepository<Command, UUID> {
 }

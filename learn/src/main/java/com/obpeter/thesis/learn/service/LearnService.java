@@ -10,15 +10,22 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.google.gson.Gson;
 import com.obpeter.thesis.learn.client.ESAccess;
 import com.obpeter.thesis.learn.entity.Command;
-import com.obpeter.thesis.learn.repository.CommandRepo;
+import com.obpeter.thesis.learn.entity.Habit;
+import com.obpeter.thesis.learn.entity.HabitEqualsProperty;
+import com.obpeter.thesis.learn.entity.HabitProperty;
+import com.obpeter.thesis.learn.entity.HabitRangeProperty;
+import com.obpeter.thesis.learn.repository.CommandRepository;
+import com.obpeter.thesis.learn.repository.HabitRepository;
 import com.obpeter.thesis.learn.util.RandomForestMapping;
 import lombok.SneakyThrows;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -26,6 +33,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.javatuples.Pair;
 import org.javatuples.Quartet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,11 +41,16 @@ public class LearnService {
 
     public static final double PERCENTILE = 10;
 
+    public static final long THRESHOLD_TO_LEARN = 10;
+
     @Autowired
     ESAccess access;
 
     @Autowired
-    CommandRepo repository;
+    CommandRepository commandRepository;
+
+    @Autowired
+    HabitRepository habitRepository;
 
     private final Gson gson = new Gson();
 
@@ -57,7 +70,7 @@ public class LearnService {
         for (Field field : fields) {
             String fieldName = field.getName();
             RandomForestMapping.Strategy strategy = field.getAnnotation(RandomForestMapping.class).strategy();
-            if (Arrays.asList("freeText","time").contains(fieldName) || strategy == RandomForestMapping.Strategy.IGNORE) {
+            if (Arrays.asList("freeText", "time").contains(fieldName) || strategy == RandomForestMapping.Strategy.IGNORE) {
                 continue;
             }
             String name = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
@@ -69,7 +82,7 @@ public class LearnService {
     }
 
     public List<Command> getAllCommands() {
-        return StreamSupport.stream(repository.findAll().spliterator(), false).collect(Collectors.toList());
+        return StreamSupport.stream(commandRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     public void getOneField() {
@@ -77,11 +90,11 @@ public class LearnService {
         access.getField("shm", query, "dayOfWeek");
     }
 
-    public Pair<BoolQueryBuilder,Long> sometin() {
+    public Pair<Habit, Long> getHabitByFreeText(String freeText) {
         ArrayList<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>> properties = getProperties();
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        while(properties.size()>0)
-        {
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchPhraseQuery("freeText", freeText));
+        ArrayList<HabitProperty> habitProperties = new ArrayList<>();
+        while (properties.size() > 0) {
             Pair<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>, Pair<QueryBuilder, Long>> bestProperty = properties
                     .stream()
                     .map(property -> Pair.with(property,
@@ -89,9 +102,21 @@ public class LearnService {
                     .max(
                             Comparator.comparing(pair -> pair.getValue1().getValue1())).get();
             queryBuilder.must(bestProperty.getValue1().getValue0());
-            properties.removeIf(property->property.getValue0().equals(bestProperty.getValue0().getValue0()));
+            switch (bestProperty.getValue0().getValue3()) {
+            case RANGE:
+                habitProperties.add(new HabitRangeProperty(bestProperty.getValue0().getValue0(),
+                        ((RangeQueryBuilder) bestProperty.getValue1().getValue0()).from().toString(),
+                        ((RangeQueryBuilder) bestProperty.getValue1().getValue0()).to().toString()));
+                break;
+            case EQUALS:
+                habitProperties.add(new HabitEqualsProperty(bestProperty.getValue0().getValue0(),
+                        ((MatchQueryBuilder) bestProperty.getValue1().getValue0()).value().toString()));
+                break;
+            }
+            properties.removeIf(property -> property.getValue0().equals(bestProperty.getValue0().getValue0()));
         }
-        return Pair.with(queryBuilder,access.count("shm",queryBuilder));
+        return Pair.with(Habit.builder().freeText(freeText).properties(habitProperties).build(),
+                access.count("shm", queryBuilder));
     }
 
     public <T> Pair<QueryBuilder, Long> propertyScore(String name, BoolQueryBuilder baseQuery,
@@ -108,6 +133,7 @@ public class LearnService {
                 long currentScore = access.count("shm", currentQuery);
                 if (score < currentScore) {
                     bestValue = value;
+                    score = currentScore;
                 }
                 currentQuery = QueryBuilders.boolQuery().must(baseQuery);
             }
@@ -143,6 +169,19 @@ public class LearnService {
         default:
             return Pair.with(null, 0L);
         }
+    }
+
+    private Stream<Command> getRecentCommands() {
+        return StreamSupport.stream(commandRepository.search(QueryBuilders.boolQuery()
+                .must(QueryBuilders.rangeQuery("time").gte(LocalDateTime.now().minusDays(1)))).spliterator(),true);
+    }
+
+    @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
+    public void learnNewCommands() {
+        List<Habit> newHabits = getRecentCommands().map(command -> getHabitByFreeText(command.getFreeText()))
+                .filter(pair -> pair.getValue1() >= THRESHOLD_TO_LEARN)
+                .peek(pair->habitRepository.index(pair.getValue0()))
+                .map(Pair::getValue0).collect(Collectors.toList());
     }
 
 }

@@ -1,6 +1,8 @@
 server:
   port: 8883
 spring:
+  gson:
+    enable-complex-map-key-serialization: true
   application:
     name: learn
   data:
@@ -11,6 +13,9 @@ spring:
   elasticsearch:
     rest:
       uris: localhost:9200
+  http:
+    converters:
+      preferred-json-mapper: gson
 eureka:
   instance:
     hostname: localhost
