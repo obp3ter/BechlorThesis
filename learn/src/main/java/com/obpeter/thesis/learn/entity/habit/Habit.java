@@ -1,10 +1,10 @@
-package com.obpeter.thesis.learn.entity;
+package com.obpeter.thesis.learn.entity.habit;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.obpeter.thesis.learn.entity.habit.properties.HabitProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-@Document(indexName = "habits", type = "habit")
+@Document(indexName = "habits")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -28,6 +28,6 @@ public class Habit implements Serializable {
 
     private List<HabitProperty> properties;
 
-
-
+    @Builder.Default
+    private Boolean alreadyExecuted=false;
 }

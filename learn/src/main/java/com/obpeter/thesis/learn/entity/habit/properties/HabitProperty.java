@@ -1,4 +1,4 @@
-package com.obpeter.thesis.learn.entity;
+package com.obpeter.thesis.learn.entity.habit.properties;
 
 import java.io.Serializable;
 
@@ -22,6 +22,6 @@ public abstract class HabitProperty implements Serializable {
 
     String value2;
 
-    abstract boolean evaluate(String evaluated);
+    public abstract boolean evaluate(String evaluated);
 }
 

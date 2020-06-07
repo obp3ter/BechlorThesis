@@ -1,4 +1,4 @@
-package com.obpeter.thesis.learn.entity;
+package com.obpeter.thesis.scheduler.entity.habit.properties;
 
 public class HabitEqualsProperty extends HabitProperty {
 
@@ -9,7 +9,7 @@ public class HabitEqualsProperty extends HabitProperty {
     }
 
     @Override
-    boolean evaluate(String evaluated) {
+    public boolean evaluate(String evaluated) {
         return value1.equals(evaluated);
     }
 }

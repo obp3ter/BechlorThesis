@@ -1,4 +1,4 @@
-package com.obpeter.thesis.learn.entity;
+package com.obpeter.thesis.scheduler.entity.habit.properties;
 
 public class HabitRangeProperty extends HabitProperty {
 
@@ -10,7 +10,7 @@ public class HabitRangeProperty extends HabitProperty {
     }
 
     @Override
-    boolean evaluate(String evaluated) {
-        return value1.compareTo(evaluated) < 0 && evaluated.compareTo(value2) < 0;
+    public boolean evaluate(String evaluated) {
+        return value1.compareTo(evaluated) <= 0 && evaluated.compareTo(value2) <= 0;
     }
 }

@@ -1,4 +1,4 @@
-package com.obpeter.thesis.learn.entity;
+package com.obpeter.thesis.learn.entity.habit.properties;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ public class HabitPropertyDeserializer extends StdDeserializer<HabitProperty> {
 
     @Override
     public HabitProperty deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException {
+            throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
         String queryType = node.get("queryType").asText();
         String propertyName= node.get("propertyName").asText();

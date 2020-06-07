@@ -16,10 +16,10 @@ import java.util.stream.StreamSupport;
 import com.google.gson.Gson;
 import com.obpeter.thesis.learn.client.ESAccess;
 import com.obpeter.thesis.learn.entity.Command;
-import com.obpeter.thesis.learn.entity.Habit;
-import com.obpeter.thesis.learn.entity.HabitEqualsProperty;
-import com.obpeter.thesis.learn.entity.HabitProperty;
-import com.obpeter.thesis.learn.entity.HabitRangeProperty;
+import com.obpeter.thesis.learn.entity.habit.Habit;
+import com.obpeter.thesis.learn.entity.habit.properties.HabitEqualsProperty;
+import com.obpeter.thesis.learn.entity.habit.properties.HabitProperty;
+import com.obpeter.thesis.learn.entity.habit.properties.HabitRangeProperty;
 import com.obpeter.thesis.learn.repository.CommandRepository;
 import com.obpeter.thesis.learn.repository.HabitRepository;
 import com.obpeter.thesis.learn.util.RandomForestMapping;
@@ -195,10 +195,10 @@ public class LearnService {
 
     @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
     public void learnNewCommands() {
-        List<Habit> newHabits = getRecentCommands().map(this::getHabitByFreeText)
+            List<Habit> newHabits = getRecentCommands().map(this::getHabitByFreeText)
                 .filter(pair -> pair.getValue1() >= COMMAND_THRESHOLD_TO_LEARN
                         && pair.getValue0().getProperties().size() >= PROPERTY_THRESHOLD_TO_LEARN)
-                .peek(pair -> habitRepository.index(pair.getValue0()))
+                .peek(pair -> habitRepository.save(pair.getValue0()))
                 .map(Pair::getValue0).collect(Collectors.toList());
     }
 

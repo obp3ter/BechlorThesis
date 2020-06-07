@@ -1,8 +1,8 @@
-package com.obpeter.thesis.learn.repository;
+package com.obpeter.thesis.scheduler.repository;
 
 import java.util.UUID;
 
-import com.obpeter.thesis.learn.entity.habit.Habit;
+import com.obpeter.thesis.scheduler.entity.habit.Habit;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
