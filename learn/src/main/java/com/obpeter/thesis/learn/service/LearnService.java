@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import com.obpeter.thesis.learn.repository.CommandRepository;
 import com.obpeter.thesis.learn.repository.HabitRepository;
 import com.obpeter.thesis.learn.util.RandomForestMapping;
 import lombok.SneakyThrows;
+import org.elasticsearch.common.util.Comparators;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -122,8 +124,10 @@ public class LearnService {
                         ((RangeQueryBuilder) bestProperty.getValue1().getValue0()).to().toString()));
                 break;
             case EQUALS:
-                habitProperties.add(new HabitEqualsProperty(bestProperty.getValue0().getValue0(),
-                        ((MatchQueryBuilder) bestProperty.getValue1().getValue0()).value().toString()));
+                BoolQueryBuilder boolQueryBuilder = (BoolQueryBuilder) bestProperty.getValue1().getValue0();
+                boolQueryBuilder.should().forEach(matchQuery -> habitProperties
+                        .add(new HabitEqualsProperty(bestProperty.getValue0().getValue0(),
+                                ((MatchQueryBuilder) matchQuery).value().toString())));
                 break;
             }
             properties.removeIf(property -> property.getValue0().equals(bestProperty.getValue0().getValue0()));
@@ -140,25 +144,44 @@ public class LearnService {
         }
         switch (strategy) {
         case EQUALS:
-            BoolQueryBuilder currentQuery = QueryBuilders.boolQuery().must(baseQuery);
-            Set<T> unique = access.getField("shm", baseQuery, name).stream().map(json -> gson.fromJson(json, clazz)).collect(
-                    Collectors.toSet());
-            T bestValue = null;
-            long score = 0;
-            for (T value : unique) {
-                currentQuery.must(QueryBuilders.matchQuery(name, value.toString()));
-                long currentScore = access.count("shm", currentQuery);
-                if (score < currentScore) {
-                    bestValue = value;
-                    score = currentScore;
-                }
-                currentQuery = QueryBuilders.boolQuery().must(baseQuery);
+            List<Pair<T, Long>> sortedList = access.getField("shm", baseQuery, name).stream()
+                    .map(json -> gson.fromJson(json, clazz)).collect(Collectors.toSet()).stream()
+                    .map(value -> Pair.with(value,
+                            access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(QueryBuilders.matchQuery(name, value.toString())))))
+                    .sorted(Comparator.comparingLong(Pair::getValue1)).collect(Collectors.toList());
+            long sum = 0;
+            int i = 0;
+            List<T> listOfValuesToAdd = new ArrayList<>();
+            BoolQueryBuilder resultQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
+            while (sum <= (1-ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN) {
+                resultQuery = resultQuery.should(QueryBuilders.matchQuery(name, sortedList.get(i).getValue0()));
+                sum = access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(resultQuery));
+                ++i;
             }
-            if (bestValue != null) {
-                return Pair.with(QueryBuilders.matchQuery(name, bestValue.toString()), score);
+            if (sum != count) {
+                return Pair.with(resultQuery, sum);
             } else {
                 return Pair.with(null, 0L);
             }
+            //            Set<T> unique = access.getField("shm", baseQuery, name).stream().map(json -> gson.fromJson(json, clazz)).collect(
+            //                    Collectors.toSet());
+            //            T bestValue = null;
+            //            long score = 0;
+            //            for (T value : unique) {
+            //                currentQuery.must(QueryBuilders.matchQuery(name, value.toString()));
+            //                long currentScore = access.count("shm", currentQuery);
+            //                if (score < currentScore) {
+            //                    bestValue = value;
+            //                    score = currentScore;
+            //                }
+            //                currentQuery = QueryBuilders.boolQuery().must(baseQuery);
+            //            }
+            //            if (bestValue != null) {
+            //                return Pair.with(QueryBuilders.matchQuery(name, bestValue.toString()), score);
+            //            } else {
+            //                return Pair.with(null, 0L);
+            //            }
+
         case RANGE:
             RangeQueryBuilder rangeQueryBuilder;
             if (!clazz.equals(LocalDateTime.class)) {
@@ -195,11 +218,22 @@ public class LearnService {
 
     @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
     public void learnNewCommands() {
-            List<Habit> newHabits = getRecentCommands().map(this::getHabitByFreeText)
+        List<Habit> newHabits = getRecentCommands().map(this::getHabitByFreeText)
                 .filter(pair -> pair.getValue1() >= COMMAND_THRESHOLD_TO_LEARN
                         && pair.getValue0().getProperties().size() >= PROPERTY_THRESHOLD_TO_LEARN)
-                .peek(pair -> habitRepository.save(pair.getValue0()))
+                .peek(pair -> addOrModifyHabit(pair.getValue0()))
                 .map(Pair::getValue0).collect(Collectors.toList());
+    }
+
+    private void addOrModifyHabit(Habit habit) {
+
+        Iterator<Habit> habitIterator = habitRepository
+                .search(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("freeText", habit.getFreeText())))
+                .iterator();
+        if (habitIterator.hasNext()) {
+            habit.setId(habitIterator.next().getId());
+        }
+        habitRepository.index(habit);
     }
 
 }
