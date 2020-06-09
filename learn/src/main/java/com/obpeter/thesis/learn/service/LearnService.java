@@ -153,35 +153,16 @@ public class LearnService {
             int i = 0;
             List<T> listOfValuesToAdd = new ArrayList<>();
             BoolQueryBuilder resultQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
-            while (sum <= (1-ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN) {
+            while (sum <= (1-ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN && i< sortedList.size()) {
                 resultQuery = resultQuery.should(QueryBuilders.matchQuery(name, sortedList.get(i).getValue0()));
                 sum = access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(resultQuery));
                 ++i;
             }
-            if (sum != count) {
+            if (sum != count && i< sortedList.size()) {
                 return Pair.with(resultQuery, sum);
             } else {
                 return Pair.with(null, 0L);
             }
-            //            Set<T> unique = access.getField("shm", baseQuery, name).stream().map(json -> gson.fromJson(json, clazz)).collect(
-            //                    Collectors.toSet());
-            //            T bestValue = null;
-            //            long score = 0;
-            //            for (T value : unique) {
-            //                currentQuery.must(QueryBuilders.matchQuery(name, value.toString()));
-            //                long currentScore = access.count("shm", currentQuery);
-            //                if (score < currentScore) {
-            //                    bestValue = value;
-            //                    score = currentScore;
-            //                }
-            //                currentQuery = QueryBuilders.boolQuery().must(baseQuery);
-            //            }
-            //            if (bestValue != null) {
-            //                return Pair.with(QueryBuilders.matchQuery(name, bestValue.toString()), score);
-            //            } else {
-            //                return Pair.with(null, 0L);
-            //            }
-
         case RANGE:
             RangeQueryBuilder rangeQueryBuilder;
             if (!clazz.equals(LocalDateTime.class)) {
