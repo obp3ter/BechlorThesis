@@ -3,5 +3,4 @@ ARG JAR_FILE=target/*.jar
 ARG CONFIG=./src/main/resources/application.yaml
 COPY ${JAR_FILE} app.jar
 COPY ${CONFIG} application.yaml
-EXPOSE 8880
-ENTRYPOINT ["java","-jar","/app.jar","--spring.config.location=classpath:file:/application.yaml"]
+#ENTRYPOINT ["java","-jar","/app.jar","--spring.config.location=/application.yaml"]

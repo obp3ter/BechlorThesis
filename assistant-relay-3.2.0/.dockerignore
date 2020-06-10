@@ -1,3 +1,4 @@
 node_modules
 npm-debug.log
-**/audio-responses
+bin/config.json
+server/configurations/config.json

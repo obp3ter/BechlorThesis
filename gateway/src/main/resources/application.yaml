@@ -7,15 +7,15 @@ spring:
     elasticsearch:
       client:
         reactive:
-          endpoints: 192.168.0.101:9200
+          endpoints: elastic:9200
   elasticsearch:
     rest:
-      uris: 192.168.0.101:9200
+      uris: elastic:9200
 eureka:
   instance:
-    hostname: 192.168.0.101
+    hostname: gateway
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:8880/eureka/
+      defaultZone: http://eureka:8880/eureka/

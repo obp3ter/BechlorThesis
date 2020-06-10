@@ -113,7 +113,7 @@ public class LearnService {
                 return Pair.with(null, 0L);
             }
             long newCount = access.count("shm", queryBuilder);
-            if (newCount < PROPERTY_THRESHOLD_TO_LEARN || newCount < preCount * ACCEPTABLE_LOSS_RATIO) {
+            if (newCount < preCount * ACCEPTABLE_LOSS_RATIO) {
                 break;
             }
             preCount = newCount;

@@ -5,5 +5,8 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
+RUN touch ./bin/config.json
+RUN touch ./server/configurations/config.json
+
 EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+#CMD [ "./wait-for-it.sh", "localhost:8880", "--","npm", "run", "start" ]
