@@ -2,51 +2,57 @@ version: '3.7'
 
 services:
 
-#  elastic:
-#    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.0
-#    environment:
-#      - "discovery.type=single-node"
-#      - bootstrap.memory_lock=true
-#      - "ES_JAVA_OPTS=-Xms1000m -Xmx1000m"
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#    volumes:
-#      - dev-elastic-data:/usr/share/elasticsearch/data
-#    ports:
-#      - 9200:9200
-#    logging:
-#      options:
-#        max-size: 5m
-#    networks:
-#      - dev
-#
-#  kibana:
-#    image: docker.elastic.co/kibana/kibana-oss:7.6.0
-#    environment:
-#      ELASTICSEARCH_HOSTS: http://elastic:9200
-#    volumes:
-#      - dev-kibana:/usr/share/kibana
-#    ports:
-#      - 5601:5601
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  assistant-relay:
-#    #    build: ../assistant-relay-3.2.0
-#    image: obp3ter/smart-home-remote:assistant-relay
-#    ports:
-#      - 3000:3000
-#    volumes:
-#      - dev-assistant-relay:/usr/share/assistant-relay
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.0
+    environment:
+      - "discovery.type=single-node"
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1000m -Xmx1000m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - dev-elastic-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    logging:
+      options:
+        max-size: 5m
+    networks:
+      - dev
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.6.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://elastic:9200
+    volumes:
+      - dev-kibana:/usr/share/kibana
+    ports:
+      - 5601:5601
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+
+  assistant-relay:
+    #    build: ../assistant-relay-3.2.0
+    image: obp3ter/smart-home-remote:assistant-relay
+    ports:
+      - 3000:3000
+    volumes:
+      - dev-assistant-relay:/usr/share/assistant-relay
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    depends_on:
+      - eureka
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;eval \"npm run start\"" ]
+
   web:
     #    build: ../web
     image: obp3ter/smart-home-remote:web
@@ -59,80 +65,108 @@ services:
     logging:
       options:
         max-size: 5m
-#  eureka:
-#    image: obp3ter/smart-home-remote:eureka
-##    build: ../eureka
-#    volumes:
-#      - dev-eureka:/usr/share/eureka
-#    ports:
-#      - 8880:8880
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  dbm:
-#    image: obp3ter/smart-home-remote:dbm
-#    volumes:
-#      - dev-dbm:/usr/share/dbm
-#    ports:
-#      - 8881:8881
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  gateway:
-#    image: obp3ter/smart-home-remote:gateway
-##    build: ../gateway
-#    volumes:
-#      - dev-gateway:/usr/share/gateway
-#    ports:
-#      - 8882:8882
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  learn:
-#    image: obp3ter/smart-home-remote:learn
-##    build: ../learn
-#    volumes:
-#      - dev-learn:/usr/share/learn
-#    ports:
-#    - 8883:8883
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  scheduler:
-#    image: obp3ter/smart-home-remote:scheduler
-##    build: ../scheduler
-#    volumes:
-#      - dev-scheduler:/user/share/scheduler
-#    ports:
-#    - 8884:8884
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
-#  zuul:
-#    image: obp3ter/smart-home-remote:zuul
-#    volumes:
-#    - dev-zuul:/usr/share/zuul
-#    ports:
-#    - 8080:8080
-#    networks:
-#      - dev
-#    logging:
-#      options:
-#        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;eval \"nginx -g 'daemon off;'\"" ]
+
+  eureka:
+    image: obp3ter/smart-home-remote:eureka
+    #    build: ../eureka
+    volumes:
+      - dev-eureka:/usr/share/eureka
+    ports:
+      - 8880:8880
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["java","-jar","/app.jar","--spring.config.location=/application.yaml"]
+
+  dbm:
+    image: obp3ter/smart-home-remote:dbm
+    volumes:
+      - dev-dbm:/usr/share/dbm
+    ports:
+      - 8881:8881
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;
+              while ! curl -s elastic:9200 > /dev/null; do echo waiting for elasticsearch; sleep 3; done;
+              eval \"java -jar /app.jar --spring.config.location=/application.yaml\"" ]
+
+  gateway:
+    image: obp3ter/smart-home-remote:gateway
+    #    build: ../gateway
+    volumes:
+      - dev-gateway:/usr/share/gateway
+    ports:
+      - 8882:8882
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;
+              while ! curl -s elastic:9200 > /dev/null; do echo waiting for elasticsearch; sleep 3; done;
+              eval \"java -jar /app.jar --spring.config.location=/application.yaml\"" ]
+
+  learn:
+    image: obp3ter/smart-home-remote:learn
+    #    build: ../learn
+    volumes:
+      - dev-learn:/usr/share/learn
+    ports:
+      - 8883:8883
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;
+                  while ! curl -s elastic:9200 > /dev/null; do echo waiting for elasticsearch; sleep 3; done;
+                  eval \"java -jar /app.jar --spring.config.location=/application.yaml\"" ]
+
+  scheduler:
+    image: obp3ter/smart-home-remote:scheduler
+    #    build: ../scheduler
+    volumes:
+      - dev-scheduler:/user/share/scheduler
+    ports:
+      - 8884:8884
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;
+                  while ! curl -s elastic:9200 > /dev/null; do echo waiting for elasticsearch; sleep 3; done;
+                  eval \"java -jar /app.jar --spring.config.location=/application.yaml\"" ]
+
+  zuul:
+    image: obp3ter/smart-home-remote:zuul
+    volumes:
+      - dev-zuul:/usr/share/zuul
+    ports:
+      - 8080:8080
+    networks:
+      - dev
+    logging:
+      options:
+        max-size: 5m
+    command: ["bash", "-c",
+              "while ! curl -s eureka:8880 > /dev/null; do echo waiting for eureka; sleep 3; done;
+                  while ! curl -s elastic:9200 > /dev/null; do echo waiting for elasticsearch; sleep 3; done;
+                  eval \"java -jar /app.jar --spring.config.location=/application.yaml\"" ]
+
 networks:
   dev:
-
-
 
 volumes:
   dev-elastic-data:

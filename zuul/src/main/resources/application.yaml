@@ -5,12 +5,12 @@ spring:
     name: Zuul
 eureka:
   instance:
-    hostname: 192.168.0.101
+    hostname: zuul
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:8880/eureka/
+      defaultZone: http://eureka:8880/eureka/
 zuul:
   host:
     connect-timeout-millis: 5000000

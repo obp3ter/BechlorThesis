@@ -10,7 +10,7 @@ import org.springframework.data.elasticsearch.client.RestClients;
 @Configuration
 class ESConfig {
 
-    @Value("${spring.elasticsearch.rest.uris:192.168.0.101:9200}")
+    @Value("${spring.elasticsearch.rest.uris:elastic:9200}")
     private String[] elasticsearchHost;
 
     @Bean
