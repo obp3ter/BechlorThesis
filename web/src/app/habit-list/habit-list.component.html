@@ -1,0 +1,10 @@
+<h4>I will ..</h4>
+<div>
+    <mat-list *ngFor="let habit of habits">
+        <mat-list-item>{{propertiesStingBuilder(habit)}}</mat-list-item>
+        <div style="display: flex;justify-content: space-between;width: 100%;align-items: center" >
+            <button (click)="pauseHabit(habit)">{{!habit.active?"Unpause":"Pause"}}</button>
+            <button (click)="deleteHabit(habit)">Delete</button>
+        </div>
+    </mat-list>
+</div>

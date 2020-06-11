@@ -31,16 +31,17 @@ public class SchedulingService {
 
     private final Gson gson = new Gson();
 
-    List<Habit> latelyEvaluated=new ArrayList<>();
+    List<Habit> latelyEvaluated = new ArrayList<>();
 
-    List<Habit> toEvaluate= new ArrayList<>();
+    List<Habit> toEvaluate = new ArrayList<>();
 
     @Scheduled(fixedRate = 10 * 1000)
     public void upcomingHabits() {
 
         Command current = Command.builder().defaults().build();
 
-        StreamSupport.stream(repository.findAll().spliterator(), true).filter(habit -> habit.evaluate(current))
+        StreamSupport.stream(repository.findAll().spliterator(), true).filter(Habit::getActive)
+                .filter(habit -> habit.evaluate(current))
                 .forEach(toEvaluate::add);
 
         latelyEvaluated.stream().parallel().filter(habit -> !habit.evaluate(current)).forEach(habit -> {

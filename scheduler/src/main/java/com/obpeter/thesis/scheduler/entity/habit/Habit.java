@@ -36,6 +36,9 @@ public class Habit implements Serializable {
     @Builder.Default
     private Boolean alreadyExecuted = false;
 
+    @Builder.Default
+    private Boolean active=true;
+
     public boolean evaluate(Command currentConditions) {
 
         List<List<HabitProperty>> habitPropertiesSorted = new ArrayList<>();
