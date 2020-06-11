@@ -62,11 +62,6 @@ public class LearnService {
 
     ArrayList<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>> properties = new ArrayList<>();
 
-    public long count() {
-        BoolQueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("dayOfWeek", "SUNDAY"));
-        return access.count("shm", query);
-    }
-
     @SneakyThrows
     public ArrayList<Quartet<String, Class<?>, Method, RandomForestMapping.Strategy>> getProperties() {
         if (!properties.isEmpty()) {
@@ -85,15 +80,6 @@ public class LearnService {
                     strategy));
         }
         return properties;
-    }
-
-    public List<Command> getAllCommands() {
-        return StreamSupport.stream(commandRepository.findAll().spliterator(), false).collect(Collectors.toList());
-    }
-
-    public void getOneField() {
-        BoolQueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("dayOfWeek", "SUNDAY"));
-        access.getField("shm", query, "dayOfWeek");
     }
 
     public Pair<Habit, Long> getHabitByFreeText(String freeText) {
@@ -147,18 +133,19 @@ public class LearnService {
             List<Pair<T, Long>> sortedList = access.getField("shm", baseQuery, name).stream()
                     .map(json -> gson.fromJson(json, clazz)).collect(Collectors.toSet()).stream()
                     .map(value -> Pair.with(value,
-                            access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(QueryBuilders.matchQuery(name, value.toString())))))
+                            access.count("shm", QueryBuilders.boolQuery().must(baseQuery)
+                                    .must(QueryBuilders.matchQuery(name, value.toString())))))
                     .sorted(Comparator.comparingLong(Pair::getValue1)).collect(Collectors.toList());
             long sum = 0;
             int i = 0;
             List<T> listOfValuesToAdd = new ArrayList<>();
             BoolQueryBuilder resultQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
-            while (sum <= (1-ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN && i< sortedList.size()) {
+            while (sum <= (1 - ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN && i < sortedList.size()) {
                 resultQuery = resultQuery.should(QueryBuilders.matchQuery(name, sortedList.get(i).getValue0()));
                 sum = access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(resultQuery));
                 ++i;
             }
-            if (sum != count && i< sortedList.size()) {
+            if (sum != count && i < sortedList.size()) {
                 return Pair.with(resultQuery, sum);
             } else {
                 return Pair.with(null, 0L);
@@ -212,7 +199,9 @@ public class LearnService {
                 .search(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("freeText", habit.getFreeText())))
                 .iterator();
         if (habitIterator.hasNext()) {
-            habit.setId(habitIterator.next().getId());
+            Habit tempHabit = habitIterator.next();
+            habit.setId(tempHabit.getId());
+            habit.setActive(tempHabit.getActive());
         }
         habitRepository.index(habit);
     }
