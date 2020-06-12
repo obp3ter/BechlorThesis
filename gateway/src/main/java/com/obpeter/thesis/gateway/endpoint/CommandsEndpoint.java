@@ -49,10 +49,7 @@ public class CommandsEndpoint {
         assistantReq.put("command", freeText);
         assistantReq.put("converse", "true");
         ResponseEntity assistantResponseEntity = client.post("assistant-relay", assistantReq, "assistant");
-        String response = assistantResponseEntity.getBody().toString();
-        JsonObject assistantResponseObject = gson.fromJson(response, JsonObject.class);
-        if (assistantResponseEntity.getStatusCode() == HttpStatus.OK &&
-                !assistantResponseObject.get("response").getAsString().equals("")) {
+        if (assistantResponseEntity.getStatusCode() == HttpStatus.OK) {
             return client.post("database-manager", Map.of("freeText", freeText), "command", "issue");
         } else {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
@@ -60,16 +57,17 @@ public class CommandsEndpoint {
     }
 
     @PostMapping("/avgExecTOD")
-    ResponseEntity executionTimeAverage(@RequestParam String freeText){
+    ResponseEntity executionTimeAverage(@RequestParam String freeText) {
         ResponseEntity postResponse = client.post("database-manager", Map.of("freeText", freeText), "command", "avgExecTOD");
-        if(postResponse.getStatusCode()!= HttpStatus.OK)
+        if (postResponse.getStatusCode() != HttpStatus.OK) {
             return postResponse;
+        }
         JsonObject postBody = gson.fromJson(
                 postResponse.getBody().toString(),
                 JsonObject.class);
         JsonObject response = new JsonObject();
-        response.addProperty("hours",postBody.get("first").getAsInt());
-        response.addProperty("minutes",postBody.get("second").getAsInt());
+        response.addProperty("hours", postBody.get("first").getAsInt());
+        response.addProperty("minutes", postBody.get("second").getAsInt());
         return ResponseEntity.ok(response.toString());
     }
 
