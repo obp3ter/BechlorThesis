@@ -1,6 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 
+import {MatSnackBar} from '@angular/material/snack-bar';
+
 @Component({
     selector: 'app-top-bar',
     templateUrl: './top-bar.component.html',
@@ -8,7 +10,7 @@ import {HttpClient} from "@angular/common/http";
 })
 export class TopBarComponent implements OnInit {
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private _snackBar: MatSnackBar) {
     }
 
     ngOnInit() {
@@ -20,7 +22,10 @@ export class TopBarComponent implements OnInit {
             body.append('freeText',title);
             console.log(body);
             this.http.post("http://localhost:8080/api/command/issue", body).subscribe(resp => {
-                alert("Sent!")
+                this._snackBar.open("Command issued!", "", {
+                    duration: 2000,
+                    panelClass:['snack-style']
+                });
             });
         } else {
             alert("Fill the command first!");

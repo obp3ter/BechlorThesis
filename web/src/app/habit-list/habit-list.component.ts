@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 
-import {products} from '../products';
 import {Habit} from "./habit";
 import {HabitProperty} from "./habit-property";
 import {HttpClient} from "@angular/common/http";
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-habit-list',
@@ -13,12 +13,14 @@ import {HttpClient} from "@angular/common/http";
 export class HabitListComponent {
     habits: Array<Habit>;
 
-    constructor(private http: HttpClient) {
+    private url = "http://localhost:8080";
+
+    constructor(private http: HttpClient,private _snackBar: MatSnackBar) {
         this.getList()
     }
 
     getList(){
-        this.http.get("http://localhost:8080/api/habit").subscribe((habits : Habit[]) =>{this.habits = habits;});
+        this.http.get(this.url + "/api/habit").subscribe((habits : Habit[]) =>{this.habits = habits;});
     }
 
     public propertiesStingBuilder(habit:Habit):string{
@@ -90,13 +92,24 @@ export class HabitListComponent {
         let body = new FormData();
         body.append('UUID',habit.id);
         console.log(habit.id);
-        this.http.post("http://localhost:8080/api/habit/pause", body).subscribe(()=>{window.alert(!habit.active?"Unpaused":"Paused"); this.getList()})
+        this.http.post(this.url + "/api/habit/pause", body).subscribe(()=>{
+            this._snackBar.open(("Habit " + (!habit.active?"unpaused!":"paused!")), "", {
+                duration: 2000,
+                panelClass:['snack-style']
+            });
+             this.getList()})
     }
     public deleteHabit(habit:Habit) {
         let body = new FormData();
         body.append('UUID',habit.id);
-        console.log(habit.id);
-        this.http.post("http://localhost:8080/api/habit/delete", body).subscribe(()=>{window.alert("Deleted!"); this.getList()});
+        // console.log(habit.id);
+        this.http.post(this.url + "/api/habit/delete", body).subscribe(()=>{
+            this._snackBar.open("Habit deleted!", "", {
+                duration: 2000,
+                panelClass:['snack-style']
+            });
+            this.getList()
+        });
     }
 
 }
