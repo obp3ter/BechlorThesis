@@ -54,9 +54,11 @@ public class SchedulingService {
 
     @Scheduled(fixedRate = 1000)
     public void executor() {
-        toEvaluate.stream().parallel().forEach(habit -> {
+        toEvaluate.stream().parallel().filter(habit -> !habit.getAlreadyExecuted() && latelyEvaluated.stream()
+                .noneMatch(evaluated -> evaluated.getId().toString().equals(habit.getId().toString()))).forEach(habit -> {
             if (executeCommand(habit)) {
                 habit.setAlreadyExecuted(true);
+                repository.save(habit);
                 latelyEvaluated.add(habit);
                 toEvaluate.remove(habit);
             }
@@ -70,10 +72,7 @@ public class SchedulingService {
         assistantReq.put("command", freeText);
         assistantReq.put("converse", "true");
         ResponseEntity assistantResponseEntity = client.post("assistant-relay", assistantReq, "assistant");
-        String response = assistantResponseEntity.getBody().toString();
-        JsonObject assistantResponseObject = gson.fromJson(response, JsonObject.class);
-        return assistantResponseEntity.getStatusCode() == HttpStatus.OK &&
-                !assistantResponseObject.get("response").getAsString().equals("");
+        return assistantResponseEntity.getStatusCode() == HttpStatus.OK;
     }
 
 }

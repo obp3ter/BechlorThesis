@@ -141,7 +141,7 @@ public class LearnService {
             List<T> listOfValuesToAdd = new ArrayList<>();
             BoolQueryBuilder resultQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
             while (sum <= (1 - ACCEPTABLE_LOSS_RATIO) * COMMAND_THRESHOLD_TO_LEARN && i < sortedList.size()) {
-                resultQuery = resultQuery.should(QueryBuilders.matchQuery(name, sortedList.get(i).getValue0()));
+                resultQuery = resultQuery.should(QueryBuilders.matchQuery(name, sortedList.get(sortedList.size()-i-1).getValue0()));
                 sum = access.count("shm", QueryBuilders.boolQuery().must(baseQuery).must(resultQuery));
                 ++i;
             }

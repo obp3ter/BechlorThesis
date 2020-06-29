@@ -63,14 +63,14 @@ export class HabitListComponent {
                 case ("timeOfDay"):
                     result+=" at "
                     if(list.length==1){
-                        let hour = Math.floor(parseInt(list[0].value1)/60/60);
+                        let hour = Math.floor((parseInt(list[0].value1)+10800)/60/60);
                         let minute = Math.floor(parseInt(list[0].value1)%(60*60)/60);
                         let second = parseInt(list[0].value1)%60;
                         result+=(hour<10?"0"+hour:hour)+":" + (minute<10?"0"+minute:minute) + ":"+ (second<10?"0"+second:second);
                     }
                     else {
                         list.forEach((value, index) => {
-                            let hour = Math.floor(parseInt(value.value1)/60/60);
+                            let hour = Math.floor((parseInt(value.value1)+10800)/60/60);
                             let minute = Math.floor(parseInt(value.value1)%(60*60)/60);
                             let second = parseInt(value.value1)%60;
                             result+=(hour<10?"0"+hour:hour)+":" + (minute<10?"0"+minute:minute) + ":"+ (second<10?"0"+second:second);
